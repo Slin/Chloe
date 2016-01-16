@@ -23,11 +23,11 @@ namespace CL
 				Select
 			};
 
-			Display::Display();
+			Display();
 
-			void Display::ShowText(const char *text);
-			void Display::Clear();
-			bool Display::IsButtonPressed(Button button);
+			void ShowText(const char *text);
+			void Clear();
+			bool IsButtonPressed(Button button);
 
 		private:
 			edOled _oled;
