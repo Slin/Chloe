@@ -2,10 +2,10 @@
 // Created by Nils Daumann on 06.01.16.
 //
 
-#include "vendor/oled/Edison_OLED.h"
-
 #ifndef ___CLDISPLAY_H___
 #define ___CLDISPLAY_H___
+
+#include "vendor/oled/Edison_OLED.h"
 
 namespace CL
 {
@@ -30,7 +30,7 @@ namespace CL
 			bool IsButtonPressed(Button button);
 
 		private:
-			edOled _oled;
+			edOLED _oled;
 	};
 }
 #endif //___CLDISPLAY_H___

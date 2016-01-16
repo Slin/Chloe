@@ -18,24 +18,24 @@ namespace CL
 
 	Display::Display()
 	{
-		oled.begin();
-		oled.clear(PAGE);
-		oled.display();
-		oled.setFontType(0);
+		_oled.begin();
+		_oled.clear(PAGE);
+		_oled.display();
+		_oled.setFontType(0);
 	}
 
 	void Display::ShowText(const char *text)
 	{
-		oled.clear(PAGE);
-		oled.setCursor(0, 0);
-		oled.print(text);
-		oled.display();
+		_oled.clear(PAGE);
+		_oled.setCursor(0, 0);
+		_oled.print(text);
+		_oled.display();
 	}
 
 	void Display::Clear()
 	{
-		oled.clear(PAGE);
-		oled.display();
+		_oled.clear(PAGE);
+		_oled.display();
 	}
 
 	bool Display::IsButtonPressed(Button button)
@@ -56,7 +56,6 @@ namespace CL
 				return (BUTTON_RIGHT.pinRead() == HIGH);
 			case Select:
 				return (BUTTON_SELECT.pinRead() == HIGH);
-
 		}
 	}
 }

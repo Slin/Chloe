@@ -22,7 +22,7 @@
  * local, and you've found our code helpful, please buy us a round!
  * ****************************************************************************/ 
 
-#include "SparkFun_pca9685_Edison.h"
+#include "SFE_PCA9685.h"
 #include "mraa.hpp"
 #include <math.h>  // Included for log normalization of LED PWM values
 

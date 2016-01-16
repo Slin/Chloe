@@ -9,6 +9,7 @@
 #ifndef __CHLOE_MATH_H__
 #define __CHLOE_MATH_H__
 
+#include <algorithm>
 #include "CLSIMD.h"
 #include "CLConstants.h"
 
