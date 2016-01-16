@@ -6,7 +6,7 @@ namespace CL
 	Sensors::Sensors()// : _overflow(false)
 	{
 		_imu = new LSM9DS0(0x6B, 0x1D);
-		_imu->begin();
+		_imu->begin(LSM9DS0::gyro_scale::G_SCALE_500DPS, LSM9DS0::accel_scale::A_SCALE_4G, LSM9DS0::mag_scale::M_SCALE_4GS, LSM9DS0::gyro_odr::G_ODR_190_BW_125, LSM9DS0::accel_odr::A_ODR_200, LSM9DS0::mag_odr::M_ODR_125);
 //		_imu->setGyroODR(LSM9DS0::G_ODR_380_BW_50);
 
 /*		_accelerometerTime = std::chrono::high_resolution_clock::now();
@@ -61,9 +61,9 @@ namespace CL
 			_gyroscopeTime = newTime;*/
 			_imu->readGyro();
 
-			_gyroscope.x = _imu->calcGyro(_imu->gx);
-			_gyroscope.y = _imu->calcGyro(_imu->gy);
-			_gyroscope.z = _imu->calcGyro(_imu->gz);
+			_gyroscope.x = _imu->calcGyro(_imu->gx) * M_PI/180.0f;
+			_gyroscope.y = _imu->calcGyro(_imu->gy) * M_PI/180.0f;
+			_gyroscope.z = _imu->calcGyro(_imu->gz) * M_PI/180.0f;
 
 			_gyroscope -= _gyroscopeCorrection;
 //			direction += _gyroscope*timeDiff;
