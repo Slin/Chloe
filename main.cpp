@@ -6,6 +6,7 @@
 #include "CLSensors.h"
 #include "CLDisplay.h"
 #include "CLMotors.h"
+#include "CLNetwork.h"
 
 std::atomic<float> directionX;
 std::atomic<float> directionY;
@@ -28,11 +29,11 @@ void updateIMU()
 	{
 		sensors.Update();
 
-		CL::Vector3 direction = sensors.orientation.GetRotatedVector(CL::Vector3(0.0f, 0.0f, 1.0f));
-		direction.Normalize(1.0f);
+		CL::Vector3 direction = sensors.orientation.GetEulerAngle();//.GetRotatedVector(CL::Vector3(0.0f, 0.0f, 1.0f));
+//		direction.Normalize(1.0f);
 
-		directionX = -direction.x;
-		directionY = -direction.y;
+		directionX = direction.x;
+		directionY = direction.y;
 		directionZ = direction.z;
 	}
 }
@@ -40,16 +41,39 @@ void updateIMU()
 int main()
 {
 	std::cout << "Started" << std::endl;
+	CL::Network network;
 
 	currentState = 0;
 	std::thread(&updateIMU).detach();
 
 	std::cout << "Detached Sensors" << std::endl;
 
-	float speed = 0.0f;
-//	CL::Motors motors;
+	float speed = 0.38f;
+	CL::Motors motors;
 	CL::Display display;
-	while(display.IsButtonPressed(CL::Display::Button::A))
+
+	motors.SetSpeed(CL::Motors::Motor::FrontLeft, speed);
+	motors.SetSpeed(CL::Motors::Motor::FrontRight, speed);
+	motors.SetSpeed(CL::Motors::Motor::BackLeft, speed);
+	motors.SetSpeed(CL::Motors::Motor::BackRight, speed);
+
+	usleep(1000000);
+
+/*	speed = 0.3f;
+	motors.SetSpeed(CL::Motors::Motor::FrontLeft, speed);
+	motors.SetSpeed(CL::Motors::Motor::FrontRight, speed);
+	motors.SetSpeed(CL::Motors::Motor::BackLeft, speed);
+	motors.SetSpeed(CL::Motors::Motor::BackRight, speed);
+
+	usleep(1000000);*/
+
+	speed = 0.0f;
+	motors.SetSpeed(CL::Motors::Motor::FrontLeft, speed);
+	motors.SetSpeed(CL::Motors::Motor::FrontRight, speed);
+	motors.SetSpeed(CL::Motors::Motor::BackLeft, speed);
+	motors.SetSpeed(CL::Motors::Motor::BackRight, speed);
+
+/*	while(display.IsButtonPressed(CL::Display::Button::A))
 	{
 		std::string output("Chloe\n\n");
 
@@ -69,13 +93,13 @@ int main()
 
 		speed += 0.02f*(display.IsButtonPressed(CL::Display::Button::Up)-display.IsButtonPressed(CL::Display::Button::Down));
 		speed = fminf(fmaxf(speed, 0.0f), 1.0f);
-/*		motors.SetSpeed(CL::Motors::Motor::FrontLeft, speed);
+		motors.SetSpeed(CL::Motors::Motor::FrontLeft, speed);
 		motors.SetSpeed(CL::Motors::Motor::FrontRight, speed);
 		motors.SetSpeed(CL::Motors::Motor::BackLeft, speed);
-		motors.SetSpeed(CL::Motors::Motor::BackRight, speed);*/
+		motors.SetSpeed(CL::Motors::Motor::BackRight, speed);
 
 //		std::cout << output;
-	}
+	}*/
 
 	currentState = 3;
 	display.Clear();
