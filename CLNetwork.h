@@ -5,7 +5,7 @@
 #ifndef CHLOE_CLNETWORK_H
 #define CHLOE_CLNETWORK_H
 
-#include "vendor/enet/include/enet/enet.h"
+#include "enet/enet.h"
 
 namespace CL
 {
@@ -17,9 +17,16 @@ namespace CL
 
 		void Update();
 
+		bool GetIsConnected() const {return _isConnected;}
+		bool GetIsStarted() const {return _isStarted;}
+		float GetUpSpeed()const {return _upSpeed;}
+
 	private:
 		ENetHost *_server;
-		ENetEvent *_event;
+		ENetEvent _event;
+		bool _isConnected;
+		bool _isStarted;
+		float _upSpeed;
 	};
 }
 

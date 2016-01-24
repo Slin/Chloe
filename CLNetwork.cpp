@@ -4,6 +4,7 @@
 
 #include "CLNetwork.h"
 #include <iostream>
+#include <cmath>
 
 namespace CL
 {
@@ -30,14 +31,67 @@ namespace CL
 		}
 	}
 
-	void Network::Update()
-	{
-		enet_host_service(_server, _event, 0);
-	}
-
 	Network::~Network()
 	{
 		enet_host_destroy(_server);
 		enet_deinitialize();
+	}
+
+	void Network::Update()
+	{
+		while(enet_host_service(_server, &_event, 0))
+		{
+			switch(_event.type)
+			{
+				case ENET_EVENT_TYPE_CONNECT:
+					std::cout << "A new client connected." << std::endl;
+					/* Store any relevant client information here. */
+					_event.peer->data = (void*)"Controller";
+					_isConnected = true;
+					_isStarted = false;
+					break;
+
+				case ENET_EVENT_TYPE_DISCONNECT:
+					std::cout << _event.peer->data << " disconnected." << std::endl;
+					/* Reset the peer's client information. */
+					_event.peer->data = NULL;
+					_isConnected = false;
+					break;
+
+				case ENET_EVENT_TYPE_RECEIVE:
+					std::string packageData(reinterpret_cast<char*>(_event.packet->data));
+					enet_packet_destroy(_event.packet);
+					//std::cout << "Received package: (" << packageData << ")" << std::endl;
+
+					if(packageData.compare("start") == 0)
+					{
+						_isStarted = true;
+					}
+
+					if(packageData.compare("stop") == 0)
+					{
+						_isStarted = false;
+						_upSpeed = 0.0f;
+					}
+
+					if(!_isStarted)
+						break;
+
+					if(packageData.find("up:") == 0)
+					{
+						float value = std::stof(packageData.substr(3));
+						if(std::isfinite(value))
+						{
+							_upSpeed = value;
+						}
+						else
+						{
+							_upSpeed = 0.0f;
+						}
+					}
+
+					break;
+			}
+		}
 	}
 }
