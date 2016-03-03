@@ -31,6 +31,8 @@ namespace CL
 		_pwm->setChlTime(static_cast<uint8_t>(Motor::FrontRight), 0, MOTOR_ARM_VALUE);
 		_pwm->setChlTime(static_cast<uint8_t>(Motor::BackLeft), 0, MOTOR_ARM_VALUE);
 		_pwm->setChlTime(static_cast<uint8_t>(Motor::BackRight), 0, MOTOR_ARM_VALUE);
+
+		usleep(100000);
 	}
 
 	Motors::~Motors()

@@ -11,13 +11,14 @@ set(HEADER_FILES
         CLDisplay.h
         CLMotors.h
         CLNetwork.h
+        CLController.h
         math/CLConstants.h
         math/CLMath.h
-        math/CLMatrix.h
         math/CLMatrixQuaternion.h
-        math/CLQuaternion.h
         math/CLSIMD.h
         math/CLVector.h
+        math/CLMatrix.h
+        math/CLQuaternion.h
         vendor/sparklibs.h
         vendor/imu/SFE_LSM9DS0.h
         vendor/pwm/SFE_PCA9685.h
@@ -34,6 +35,7 @@ set(SOURCE_FILES
         CLDisplay.cpp
         CLMotors.cpp
         CLNetwork.cpp
+        CLController.cpp
         math/CLMath.cpp
         vendor/imu/SFE_LSM9DS0.cpp
         vendor/pwm/SFE_PCA9685.cpp
