@@ -7,7 +7,7 @@
 #include "CLNetwork.h"
 #include "CLController.h"
 
-#define CHLOE_TEST
+//#define CHLOE_TEST
 
 /*void termination_handler(int signum)
 {
@@ -46,7 +46,7 @@ int main()
 
 	displayText("Calibra...\nDON'T MOVE", display);
 	CL::Sensors sensors;
-	sensors.Calibrate(1.0f);
+	sensors.Calibrate(3.0f);
 
 	CL::Network network;
 
@@ -65,11 +65,12 @@ int main()
 	{
 		network.Update();
 		sensors.Update();
+		controller.Update(sensors.orientation, network.GetUpSpeed());
 
-		motors.SetSpeed(CL::Motors::Motor::FrontLeft, network.GetUpSpeed());
-		motors.SetSpeed(CL::Motors::Motor::FrontRight, network.GetUpSpeed());
-		motors.SetSpeed(CL::Motors::Motor::BackLeft, network.GetUpSpeed());
-		motors.SetSpeed(CL::Motors::Motor::BackRight, network.GetUpSpeed());
+		motors.SetSpeed(CL::Motors::Motor::FrontLeft, controller.GetSpeed(CL::Motors::Motor::FrontLeft));
+		motors.SetSpeed(CL::Motors::Motor::FrontRight, controller.GetSpeed(CL::Motors::Motor::FrontRight));
+		motors.SetSpeed(CL::Motors::Motor::BackLeft, controller.GetSpeed(CL::Motors::Motor::BackLeft));
+		motors.SetSpeed(CL::Motors::Motor::BackRight, controller.GetSpeed(CL::Motors::Motor::BackRight));
 	}
 
 	motors.SetSpeed(CL::Motors::Motor::FrontLeft, 0.0f);
@@ -94,7 +95,7 @@ int main()
 	while(1)
 	{
 		sensors.Update();
-		controller.Update(sensors.orientation, 0.1f);
+		controller.Update(sensors.orientation, 0.3f);
 
 		motors.SetSpeed(CL::Motors::Motor::FrontLeft, controller.GetSpeed(CL::Motors::Motor::FrontLeft));
 		motors.SetSpeed(CL::Motors::Motor::FrontRight, controller.GetSpeed(CL::Motors::Motor::FrontRight));

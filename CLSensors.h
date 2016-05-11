@@ -36,6 +36,7 @@ namespace CL
 //		Vector3 _magnetometer;
 
 		Vector3 _gyroscopeCorrection;
+		Quaternion _accelerometerCorrection;
 
 //		AHRS::Madgwick _madgwick;
 	};

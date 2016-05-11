@@ -48,6 +48,7 @@ namespace CL
 
 	void Motors::SetSpeed(Motor motor, float speed)
 	{
+		speed = std::min(std::max(speed, 0.0f), 1.0f);
 		_pwm->setChlTime(static_cast<uint8_t>(motor), 0, MOTOR_MIN_VALUE+speed*(MOTOR_MAX_VALUE-MOTOR_MIN_VALUE));
 	}
 }

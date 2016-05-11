@@ -18,8 +18,8 @@ namespace CL
 		{
 			FrontLeft = 0,
 			FrontRight = 1,
-			BackLeft = 2,
-			BackRight = 3
+			BackRight = 2,
+			BackLeft = 3
 		};
 
 		Motors();

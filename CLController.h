@@ -9,6 +9,7 @@
 #include "math/CLMatrix.h"
 #include "math/CLQuaternion.h"
 #include "CLMotors.h"
+#include "CLPID.h"
 
 namespace CL
 {
@@ -24,6 +25,7 @@ namespace CL
 
 	private:
 		float GetControlDistance(Vector3 motorOffset);
+		float GetControlSpeed(int motor, Vector3 motorOffset);
 
 		CL::Quaternion _currentOrientation;
 		CL::Quaternion _currentRotationWithoutYaw;
@@ -32,6 +34,8 @@ namespace CL
 		float _speedFrontRight;
 		float _speedBackLeft;
 		float _speedBackRight;
+
+		PID *_pids[4];
 	};
 }
 

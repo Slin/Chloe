@@ -30,9 +30,10 @@ namespace CL
 			accelerometer.Normalize();
 
 			float pitch = atan2(-accelerometer.x, sqrt(accelerometer.y*accelerometer.y + accelerometer.z*accelerometer.z))*180.0/M_PI;
-			float roll = atan2(accelerometer.y,( accelerometer.z>0.0f?1.0f:-1.0f)*sqrt(accelerometer.z*accelerometer.z + 0.001f*_accelerometer.x*_accelerometer.x))*180.0/M_PI;
+			float roll = atan2(accelerometer.y,( accelerometer.z>0.0f?1.0f:-1.0f)*sqrt(accelerometer.z*accelerometer.z + 0.001f*accelerometer.x*accelerometer.x))*180.0/M_PI;
 
 			_accelerometer = Quaternion::WithEulerAngle(Vector3(0.0f, pitch, roll));
+			_accelerometer /= _accelerometerCorrection;
 		}
 		if(_imu->newGData())
 		{
@@ -138,17 +139,33 @@ namespace CL
 
 		Vector3 euler = orientation.GetEulerAngle();
 //		std::cout << "acc: (" << _accelerometer.x << ", " << _accelerometer.y << ", " << _accelerometer.z << ")" << std::endl;
-		std::cout << "rot: (" << euler.y << ", " << euler.z << ")" << std::endl;
+//		std::cout << "rot: (" << euler.y << ", " << euler.z << ")" << std::endl;
 	}
 
 	void Sensors::Calibrate(float time)
 	{
+		_accelerometerCorrection = Quaternion();
 		_gyroscopeCorrection = Vector3();
 		auto calibrationStart = std::chrono::high_resolution_clock::now();
 		_gyroscopeTime = std::chrono::high_resolution_clock::now();
-		long counter = 0;
 		while(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - calibrationStart).count() < time*1000000000)
 		{
+			if(_imu->newXData())
+			{
+				_imu->readAccel();
+
+				Vector3 accelerometer;
+				accelerometer.x = _imu->calcAccel(_imu->ax);
+				accelerometer.y = _imu->calcAccel(_imu->ay);
+				accelerometer.z = _imu->calcAccel(_imu->az);
+				accelerometer.Normalize();
+
+				float pitch = atan2(-accelerometer.x, sqrt(accelerometer.y*accelerometer.y + accelerometer.z*accelerometer.z))*180.0/M_PI;
+				float roll = atan2(accelerometer.y,( accelerometer.z>0.0f?1.0f:-1.0f)*sqrt(accelerometer.z*accelerometer.z + 0.001f*accelerometer.x*accelerometer.x))*180.0/M_PI;
+
+				_accelerometerCorrection = Quaternion::WithEulerAngle(Vector3(0.0f, pitch, roll));
+			}
+
 			if(_imu->newGData())
 			{
 				auto newTime = std::chrono::high_resolution_clock::now();
