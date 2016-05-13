@@ -37,6 +37,18 @@ namespace CL
 		enet_deinitialize();
 	}
 
+	void Network::SendOrientation(CL::Vector3 orientation)
+	{
+		std::string orientationString = "currentorientation:";
+		orientationString += std::to_string(orientation.x);
+		orientationString += ",";
+		orientationString += std::to_string(orientation.y);
+		orientationString += ",";
+		orientationString += std::to_string(orientation.z);
+		ENetPacket * packet = enet_packet_create(orientationString.c_str(), orientationString.length() + 1, 0);
+		enet_peer_send(_peer, 0, packet);
+	}
+
 	void Network::Update()
 	{
 		while(enet_host_service(_server, &_event, 0))
@@ -47,6 +59,7 @@ namespace CL
 					std::cout << "A new client connected." << std::endl;
 					/* Store any relevant client information here. */
 					_event.peer->data = (void*)"Controller";
+					_peer = _event.peer;
 					_isConnected = true;
 					_isStarted = false;
 					break;
@@ -88,6 +101,34 @@ namespace CL
 						{
 							_upSpeed = 0.0f;
 						}
+					}
+
+					if(packageData.find("targetorientation:") == 0)
+					{
+						std::string values = packageData.substr(18);
+						float x = std::stof(values.substr(0, values.find(",")));
+						values = values.substr(values.find(",")+1);
+						float y = std::stof(values.substr(0, values.find(",")));
+						values = values.substr(values.find(",")+1);
+						float z = std::stof(values.substr(0, values.find(",")));
+
+						if(std::isfinite(x))
+						{
+							_targetOrientation.x += x;
+						}
+						if(std::isfinite(y))
+						{
+							_targetOrientation.y += y;
+						}
+						if(std::isfinite(z))
+						{
+							_targetOrientation.z += z;
+						}
+					}
+
+					if(packageData.compare("makelevel") == 0)
+					{
+						_targetOrientation = Vector3();
 					}
 
 					break;

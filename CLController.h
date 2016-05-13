@@ -19,7 +19,7 @@ namespace CL
 		Controller();
 		~Controller();
 
-		void Update(const Quaternion &orientation, float speed);
+		void Update(const Quaternion &orientation, const Quaternion &targetOrientation, float speed);
 
 		float GetSpeed(Motors::Motor motor);
 
@@ -29,6 +29,7 @@ namespace CL
 
 		CL::Quaternion _currentOrientation;
 		CL::Quaternion _currentRotationWithoutYaw;
+		CL::Quaternion _targetOrientation;
 
 		float _speedFrontLeft;
 		float _speedFrontRight;

@@ -1,5 +1,5 @@
 #include <iostream>
-//#include <csignal>
+#include <csignal>
 
 #include "CLSensors.h"
 #include "CLDisplay.h"
@@ -8,11 +8,10 @@
 #include "CLController.h"
 
 //#define CHLOE_TEST
+//#define CHLOE_ESC_CALIBRATION
 
-/*void termination_handler(int signum)
-{
-
-}*/
+CL::Display *_display = nullptr;
+CL::Motors *_motors = nullptr;
 
 void displayText(const std::string &text, CL::Display &display)
 {
@@ -21,32 +20,39 @@ void displayText(const std::string &text, CL::Display &display)
 	display.ShowText(output.c_str());
 }
 
-#ifndef CHLOE_TEST
+void sigkill(int signum)
+{
+	if(_motors)
+	{
+		_motors->SetSpeed(CL::Motors::Motor::FrontLeft, 0.0f);
+		_motors->SetSpeed(CL::Motors::Motor::FrontRight, 0.0f);
+		_motors->SetSpeed(CL::Motors::Motor::BackLeft, 0.0f);
+		_motors->SetSpeed(CL::Motors::Motor::BackRight, 0.0f);
+	}
+
+	if(_display)
+	{
+		_display->Clear();
+	}
+
+	mraa_deinit();
+
+	exit(0);
+}
+
+#if !defined(CHLOE_TEST) && !defined(CHLOE_ESC_CALIBRATION)
 int main()
 {
-/*	struct sigaction new_action, old_action;
-
-	//Set up the structure to specify the new action.
-	new_action.sa_handler = termination_handler;
-	sigemptyset(&new_action.sa_mask);
-	new_action.sa_flags = 0;
-
-	sigaction(SIGINT, NULL, &old_action);
-	if(old_action.sa_handler != SIG_IGN)
-		sigaction(SIGINT, &new_action, NULL);
-	sigaction(SIGHUP, NULL, &old_action);
-	if(old_action.sa_handler != SIG_IGN)
-		sigaction(SIGHUP, &new_action, NULL);
-	sigaction(SIGTERM, NULL, &old_action);
-	if(old_action.sa_handler != SIG_IGN)
-		sigaction(SIGTERM, &new_action, NULL);*/
-
+	signal(SIGINT, sigkill);
+	signal(SIGQUIT, sigkill);
+	signal(SIGTERM, sigkill);
 
 	CL::Display display;
+	_display = &display;
 
 	displayText("Calibra...\nDON'T MOVE", display);
 	CL::Sensors sensors;
-	sensors.Calibrate(3.0f);
+//	sensors.Calibrate(20.0f);
 
 	CL::Network network;
 
@@ -60,12 +66,15 @@ int main()
 	CL::Motors motors;
 	CL::Controller controller;
 
+	_motors = &motors;
+
 	displayText("Active", display);
 	while(network.GetIsStarted() && network.GetIsConnected())
 	{
 		network.Update();
 		sensors.Update();
-		controller.Update(sensors.orientation, network.GetUpSpeed());
+		controller.Update(sensors.orientation, CL::Quaternion(network.GetTargetOrientation()), network.GetUpSpeed());
+		network.SendOrientation(sensors.orientation.GetEulerAngle());
 
 		motors.SetSpeed(CL::Motors::Motor::FrontLeft, controller.GetSpeed(CL::Motors::Motor::FrontLeft));
 		motors.SetSpeed(CL::Motors::Motor::FrontRight, controller.GetSpeed(CL::Motors::Motor::FrontRight));
@@ -83,7 +92,7 @@ int main()
 
 	return MRAA_SUCCESS;
 }
-#else
+#elif defined(CHLOE_TEST)
 int main()
 {
 	CL::Motors motors;
@@ -112,4 +121,34 @@ int main()
 
 	return MRAA_SUCCESS;
 }
+#elif defined(CHLOE_ESC_CALIBRATION)
+
+int main()
+{
+	CL::Motors motors;
+	CL::Display display;
+
+	displayText("Connect the\nBatterie", display);
+
+	motors.SetSpeed(CL::Motors::Motor::FrontLeft, 1.0f);
+	motors.SetSpeed(CL::Motors::Motor::FrontRight, 1.0f);
+	motors.SetSpeed(CL::Motors::Motor::BackLeft, 1.0f);
+	motors.SetSpeed(CL::Motors::Motor::BackRight, 1.0f);
+
+	usleep(10000000);
+
+	motors.SetSpeed(CL::Motors::Motor::FrontLeft, 0.0f);
+	motors.SetSpeed(CL::Motors::Motor::FrontRight, 0.0f);
+	motors.SetSpeed(CL::Motors::Motor::BackLeft, 0.0f);
+	motors.SetSpeed(CL::Motors::Motor::BackRight, 0.0f);
+
+	usleep(5000000);
+
+	display.Clear();
+
+	mraa_deinit();
+
+	return MRAA_SUCCESS;
+}
+
 #endif

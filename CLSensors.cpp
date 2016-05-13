@@ -10,6 +10,15 @@ namespace CL
 		_imu->begin(LSM9DS0::gyro_scale::G_SCALE_245DPS, LSM9DS0::accel_scale::A_SCALE_4G, LSM9DS0::mag_scale::M_SCALE_4GS, LSM9DS0::gyro_odr::G_ODR_190_BW_50, LSM9DS0::accel_odr::A_ODR_200, LSM9DS0::mag_odr::M_ODR_125);
 
 		_gyroscopeTime = std::chrono::high_resolution_clock::now();
+
+		_accelerometerCorrection.x = 0.0622763;
+		_accelerometerCorrection.y = -0.000116977;
+		_accelerometerCorrection.z = 0.00188158;
+		_accelerometerCorrection.w = 0.998055;
+
+		_gyroscopeCorrection.x = -2.05624;
+		_gyroscopeCorrection.y = 2.10551;
+		_gyroscopeCorrection.z = 0.0f;
 	}
 
 	Sensors::~Sensors()
@@ -32,8 +41,10 @@ namespace CL
 			float pitch = atan2(-accelerometer.x, sqrt(accelerometer.y*accelerometer.y + accelerometer.z*accelerometer.z))*180.0/M_PI;
 			float roll = atan2(accelerometer.y,( accelerometer.z>0.0f?1.0f:-1.0f)*sqrt(accelerometer.z*accelerometer.z + 0.001f*accelerometer.x*accelerometer.x))*180.0/M_PI;
 
-			_accelerometer = Quaternion::WithEulerAngle(Vector3(0.0f, pitch, roll));
-			_accelerometer /= _accelerometerCorrection;
+			CL::Quaternion _currentAccelerometer = Quaternion::WithEulerAngle(Vector3(0.0f, pitch, roll));
+			_currentAccelerometer /= _accelerometerCorrection;
+
+			_accelerometer = _accelerometer.GetLerpSpherical(_currentAccelerometer, 0.1f);
 		}
 		if(_imu->newGData())
 		{
@@ -45,7 +56,7 @@ namespace CL
 			Vector3 gyroscope;
 			gyroscope.x = _imu->calcGyro(_imu->gx);
 			gyroscope.y = _imu->calcGyro(_imu->gy);
-			//gyroscope.z = _imu->calcGyro(_imu->gz);
+//			gyroscope.z = _imu->calcGyro(_imu->gz);
 			gyroscope -= _gyroscopeCorrection;
 
 			_gyroscope = orientation*Quaternion::WithEulerAngle(Vector3(0.0f, gyroscope.y*timeDiff, gyroscope.x*timeDiff));
@@ -73,71 +84,13 @@ namespace CL
 			std::cout << "WARNING: DATA OVERFLOW!!!" << std::endl;
 		}*/
 
-//		_madgwick.update(_gyroscope.x, _gyroscope.y, _gyroscope.z, _accelerometer.x, _accelerometer.y, _accelerometer.z, _magnetometer.x, _magnetometer.y, _magnetometer.z);
+//		_madgwick.updateIMU(_gyroscope.x, _gyroscope.y, _gyroscope.z, _accelerometer.x, _accelerometer.y, _accelerometer.z);
 //		orientation = Quaternion(_madgwick.q1, _madgwick.q2, _madgwick.q3, _madgwick.q0);
 
-//		std::cout << "acc: (" << _accelerometer.x << ", " << _accelerometer.y << ", " << _accelerometer.z << ")" << std::endl;
-
-//		orientation = Quaternion::WithAxisAngle(Vector4(_accelerometer.x, _accelerometer.y, _accelerometer.z, 0.0f));
-//		orientation = Quaternion::WithLookAt(Vector3(1.0f, 0.0f, 0.0f), _accelerometer, true);
-
-/*		Matrix matRotation;
-
-		Vector3 dir = Vector3(1.0f, 0.0f, 0.0f);
-		Vector3 up  = _accelerometer;
-		Vector3 right = up.GetCrossProduct(dir);
-		right.Normalize();
-		dir = up.GetCrossProduct(right);
-		up.Normalize();
-		dir.Normalize();
-
-		matRotation.m[0] = right.x;
-		matRotation.m[1] = right.y;
-		matRotation.m[2] = right.z;
-		matRotation.m[3] = 0.0f;
-
-		matRotation.m[4] = up.x;
-		matRotation.m[5] = up.y;
-		matRotation.m[6] = up.z;
-		matRotation.m[7] = 0.0f;
-
-		matRotation.m[8] = dir.x;
-		matRotation.m[9] = dir.y;
-		matRotation.m[10] = dir.z;
-		matRotation.m[11] = 0.0f;
-
-		matRotation.m[12] = 0.0f;
-		matRotation.m[13] = 0.0f;
-		matRotation.m[14] = 0.0f;
-		matRotation.m[15] = 1.0f;*/
-
-
-/*		matRotation.m[0] = right.x;
-		matRotation.m[4] = right.y;
-		matRotation.m[8] = right.z;
-		matRotation.m[12] = 0.0f;
-
-		matRotation.m[1] = up.x;
-		matRotation.m[5] = up.y;
-		matRotation.m[9] = up.z;
-		matRotation.m[13] = 0.0f;
-
-		matRotation.m[2] = dir.x;
-		matRotation.m[6] = dir.y;
-		matRotation.m[10] = dir.z;
-		matRotation.m[14] = 0.0f;
-
-		matRotation.m[3] = 0.0f;
-		matRotation.m[7] = 0.0f;
-		matRotation.m[11] = 0.0f;
-		matRotation.m[15] = 1.0f;*/
-
-//		Vector3 blubb = matRotation*Vector3(0.0f, 0.0f, 0.0f);
-//		std::cout << "acc: (" << blubb.x << ", " << blubb.y << ", " << blubb.z << ")" << std::endl;
 
 		orientation = Quaternion::WithLerpSpherical(_accelerometer, _gyroscope, 0.99f);
 
-		Vector3 euler = orientation.GetEulerAngle();
+		Vector3 euler = _accelerometer.GetEulerAngle();
 //		std::cout << "acc: (" << _accelerometer.x << ", " << _accelerometer.y << ", " << _accelerometer.z << ")" << std::endl;
 //		std::cout << "rot: (" << euler.y << ", " << euler.z << ")" << std::endl;
 	}
@@ -163,7 +116,7 @@ namespace CL
 				float pitch = atan2(-accelerometer.x, sqrt(accelerometer.y*accelerometer.y + accelerometer.z*accelerometer.z))*180.0/M_PI;
 				float roll = atan2(accelerometer.y,( accelerometer.z>0.0f?1.0f:-1.0f)*sqrt(accelerometer.z*accelerometer.z + 0.001f*accelerometer.x*accelerometer.x))*180.0/M_PI;
 
-				_accelerometerCorrection = Quaternion::WithEulerAngle(Vector3(0.0f, pitch, roll));
+				_accelerometerCorrection = _accelerometerCorrection.GetLerpSpherical(Quaternion::WithEulerAngle(Vector3(0.0f, pitch, roll)), 0.1f);
 			}
 
 			if(_imu->newGData())
@@ -176,11 +129,15 @@ namespace CL
 				Vector3 gyroscope;
 				gyroscope.x = _imu->calcGyro(_imu->gx);
 				gyroscope.y = _imu->calcGyro(_imu->gy);
+//				gyroscope.z = _imu->calcGyro(_imu->gz);
 				_gyroscopeCorrection += gyroscope*timeDiff;
 			}
 		}
 		_gyroscopeCorrection /= time;
 		orientation = Quaternion::WithIdentity();
+
+		std::cout << "Accelerometer Correction: (" << _accelerometerCorrection.x << ", " << _accelerometerCorrection.y << ", " << _accelerometerCorrection.z << ", " << _accelerometerCorrection.w << ")" << std::endl;
+		std::cout << "Gyroscope Correction: (" << _gyroscopeCorrection.x << ", " << _gyroscopeCorrection.y << ", " << _gyroscopeCorrection.z << ")" << std::endl;
 	}
 
 /*	Vector3 Sensors::CalculateSimpleAngles(Vector3 mag, Vector3 acc, float declination)

@@ -21,20 +21,21 @@ namespace CL
 
 	}
 
-	void Controller::Update(const Quaternion &orientation, float speed)
+	void Controller::Update(const Quaternion &orientation, const Quaternion &targetOrientation, float speed)
 	{
 		_currentOrientation = orientation;
+		_targetOrientation = targetOrientation;
 		_currentRotationWithoutYaw = _currentOrientation;
 //		_currentRotationWithoutYaw.z = 0.0f;
 //		_currentRotationWithoutYaw.Normalize();
 
-		if(speed > 0.2f)
+		if(speed > 0.1f)
 		{
 			//Z zeigt nach hinten, X nach rechts und Y nach oben
 			_speedFrontLeft = std::max(std::min(speed + GetControlSpeed(0, Vector3(-20.50f, 0.0f, -20.50f)), 1.0f), 0.0f);
 			_speedFrontRight = std::max(std::min(speed + GetControlSpeed(1, Vector3(20.50f, 0.0f, -20.50f)), 1.0f), 0.0f);
-			_speedBackLeft = std::max(std::min(speed + GetControlSpeed(2, Vector3(-20.50f, 0.0f, 20.50f)), 1.0f), 0.0f);
-			_speedBackRight = std::max(std::min(speed + GetControlSpeed(3, Vector3(20.50f, 0.0f, 20.50f)), 1.0f), 0.0f);
+			_speedBackLeft = std::max(std::min(speed + GetControlSpeed(3, Vector3(-20.50f, 0.0f, 20.50f)), 1.0f), 0.0f);
+			_speedBackRight = std::max(std::min(speed + GetControlSpeed(2, Vector3(20.50f, 0.0f, 20.50f)), 1.0f), 0.0f);
 		}
 		else
 		{
@@ -63,8 +64,10 @@ namespace CL
 
 	float Controller::GetControlDistance(Vector3 motorOffset)
 	{
+//		motorOffset = Quaternion(Vector3(45.0f, 0.0f, 0.0f)).GetRotatedVector(motorOffset);
 		Vector3 position = _currentRotationWithoutYaw.GetRotatedVector(motorOffset);
 
+		motorOffset = _targetOrientation.GetRotatedVector(motorOffset);
 		float distance = motorOffset.GetDistance(position);
 
 		if(motorOffset.y > position.y)
@@ -78,7 +81,7 @@ namespace CL
 		Vector3 position = _currentRotationWithoutYaw.GetRotatedVector(motorOffset);
 		float distance = GetControlDistance(motorOffset);
 		float controlSpeed = _pids[motor]->Update(distance, position.y);
-//		printf("controlSpeed: (%i, %f)\n", motor, controlSpeed);
+//		printf("control: (%i, %f, %f)\n", motor, distance, controlSpeed);
 		return controlSpeed;
 	}
 }
